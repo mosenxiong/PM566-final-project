@@ -12,7 +12,7 @@ This is my PM566 Final Project website.
 
 <br>
 
-Link to my final report : [Download](https://github.com/mosenxiong/PM566-final-projectblob/main/report)
+Link to my final report : [Download](https://github.com/mosenxiong/PM566-final-project/raw/main/report.pdf)
 
 <br>
 
