@@ -1,0 +1,262 @@
+---
+title: "Chicago Crime Data Analysis"
+author: "Senxiong Mo"
+output: 
+    html_document:
+        toc: TRUE
+        toc_float: TRUE
+---
+<br>
+
+This is my PM566 Final Project website.
+
+<br>
+
+Link to my final report : [Download](https://github.com/mosenxiong/PM566-final-projectblob/main/report)
+
+<br>
+
+```{r setup, message=FALSE, echo=FALSE, warning=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(data.table)
+library(tidyverse)
+library(scales)
+library(dtplyr)
+library(dplyr)
+library(ggplot2)
+library(leaflet)
+library(DT)
+library(plotly)
+library(knitr)
+```
+
+
+```{r, echo = FALSE}
+# Initialize code chunk options
+opts_chunk$set(
+  warning = FALSE,
+  message = FALSE,
+  eval=TRUE,
+  echo = TRUE,
+  cache = FALSE,
+  fig.width = 7, 
+  fig.align = 'center',
+  fig.asp = 0.618,
+  out.width = "700px")
+```
+
+
+
+
+# Introduction
+Crime is a growing concern. There is a direct correlation between the number of crimes in a city and its security situation.Chicago is a famous big city in the United States, so we are very concerned about the crime situation in Chicago. In recent years, Chicago's economy continues to develop, citizens' living standards, facilities and equipment continue to improve, police strategy and tactics and residents' trust in the police have also greatly improved.
+
+<br>
+
+# Question
+Analyze in terms of time: Looking at the past three years, which month has the highest frequency of crime occurrences each year? Analysis from the type of crime: Which types of crimes will be the most common in 2022? Are there significant differences in the number of cases for different crime types? At the same time, the crime situation in Chicago in the past three years will be analyzed based on time, crime, and type.
+
+<br>
+
+# Data
+The data studied in this analysis is Chicago’s crime data in 2014, 2018, and 2022. These three data sets have 22 variables, but the observations are different. The 2014 data has 275796 rows, the 2018 data has 268922 rows, and the 2023 data has 202991 rows. These three-year data sets include crimes that occurred in the Chicago area. Detailed records of events. Contains a variety of crime types, such as sexual crimes, domestic violence incidents, and other types of violations. Each incident is equipped with a unique case number and a detailed description of the time and location.
+
+Data on crime in Chicago come from: https://data.cityofchicago.org/Public-Safety/Crimes-2001-to-Present/ijzp-q8t2/data.
+
+<br>
+```{r,include = FALSE}
+data2014<-read.csv("Crimes_-_2014.csv")
+data2018<-read.csv("Crimes_-_2018.csv")
+data2022<-read.csv("Crimes_-_2022.csv")
+```
+
+
+```{r,include = FALSE}
+# check missing values for data set.
+missing_2014<- sapply(data2014, function(x) sum(is.na(x)))
+
+missing_2018<- sapply(data2018, function(y) sum(is.na(y)))
+
+missing_2022<- sapply(data2022, function(z) sum(is.na(z)))
+
+# remove missing values for data set.
+new2014 <- na.omit(data2014)
+new2018 <-na.omit(data2018)
+new2022 <-na.omit(data2022)
+
+# Create variables for month
+new2014$Date <- as.POSIXct(new2014$Date, format="%m/%d/%Y %I:%M:%S %p")
+new2014$month <- format(new2014$Date, "%m")
+
+new2018$Date <- as.POSIXct(new2018$Date, format="%m/%d/%Y %I:%M:%S %p")
+new2018$month <- format(new2018$Date, "%m")
+
+new2022$Date <- as.POSIXct(new2022$Date, format="%m/%d/%Y %I:%M:%S %p")
+new2022$month <- format(new2022$Date, "%m")
+
+# Combine three data into one.
+data_combined<- merge(new2014, new2018, all = TRUE)
+data_combined2 <- merge(data_combined, new2022, all = TRUE)
+
+# check again missing value
+missing_com<- sapply(data_combined2, function(p) sum(is.na(p)))
+
+data_final<- na.omit(data_combined2)
+
+missing_final<- sapply(data_final, function(w) sum(is.na(w)))
+```
+
+<br>
+
+# Result
+
+<br>
+
+## 1.0 Crime in Chicago by year
+
+<br>
+
+```{r,include = FALSE}
+data_year<- data_final %>%
+  group_by(Year) %>%
+  summarize(total_crimes = n())
+
+datatable(data_year)
+```
+
+
+<br>
+
+```{r,echo = FALSE}
+ggplot(data_year, aes(x = factor(Year), y = total_crimes, fill = factor(Year))) +
+  geom_bar(stat = "identity", position = position_dodge(), width = 0.7) +
+  labs(title = "Total Number of Crimes by Year",
+       x = "Year",
+       y = "Number of Crimes",
+       fill = "Year") +
+  theme_minimal() +
+  theme(legend.position = "none",
+        plot.title = element_text(hjust = 0.5)) +
+  scale_y_continuous(labels = label_number())
+```
+
+ Figure 1 intuitively shows the number of crimes in Chicago in 2014, 2018, and 2020. Based on the histogram, it can be easily seen that the total number of crimes in 2014 was the highest among the three years. At the same time, it can also be observed that the total number of crimes in the past three years has gradually declined.
+ 
+ 
+<br>
+
+## 1.1	Monthly trend in each of the three different years
+
+<br>
+
+```{r,include = FALSE}
+data_moth<-data_final%>%
+  group_by(Year, month) %>%
+  summarize(total_crimes = n(),.groups = 'drop')
+
+datatable(data_moth)
+```
+
+<br>
+
+```{r,echo = FALSE}
+ggplot(data_moth, aes(x = month, y = total_crimes, fill = Year, group = Year, color = factor(Year))) + 
+  geom_line(size = 1) +
+  scale_x_discrete(labels = month.abb) +
+  labs(title = "Monthly Crime Trends in 2014, 2018, and 2022", x = "Month", y = "Number of Crimes", color = "Year") + 
+  theme_minimal() + 
+  theme(legend.title = element_text(), legend.position = "bottom",
+        plot.title = element_text(hjust = 0.5))
+```
+
+Figure 1.1 clearly shows the trend of monthly crime totals in Chicago over the past three years. The monthly trends over the past three years have a similar story. From January to July every year, the number of crimes increases, most notably in 2014 and 2018. From August to December each year, the number of crimes shows a downward trend.
+
+<br>
+
+## 2.0 Crime primary Type with year
+
+<br>
+
+```{r,echo = FALSE}
+ggplot(data_final, mapping = aes(y = `Primary.Type`, fill = as.factor(Year))) + 
+  geom_bar(position = "dodge") + 
+  scale_fill_manual(values = c("red", "orange", "blue")) +
+  theme(axis.text.x = element_text(angle = 90, hjust = 0.5, vjust = 0.1),
+        plot.title = element_text(hjust = 0.5)) +
+  labs(title = "Crime number by Primary Type with year", y = "Primary Type", x = "Crime number", fill = "Year")
+```
+
+Figure 2.0 clearly shows the number of all crime types in Chicago over three years. It can be seen that the top three types of crimes are Theft, Battery, and Criminal Damage.
+
+<br>
+
+
+```{r,include = FALSE}
+crime_july_2022 <- data_final %>%
+  filter(month == 10 & Year == 2022) %>%
+  group_by(Primary.Type) %>%
+  summarize(count = n(), .groups = 'drop') %>%
+  arrange(desc(count))
+
+datatable(crime_july_2022)
+
+theft_data <- data_final %>%
+  filter(Primary.Type == "THEFT" & month == 10 & Year == 2022)
+```
+
+
+
+<br>
+
+## 3.0 Crime is a statistic of the number of types of theft in Chicago's various neighborhoods
+
+<br>
+
+```{r,echo = FALSE}
+dis_data<-theft_data %>%
+  filter(Primary.Type == "THEFT" & month == 10 & Year == 2022) %>%
+  group_by(District) %>%
+  summarize(count = n(), .groups = 'drop') %>%
+  arrange(desc(count))
+
+datatable(dis_data)
+```
+
+Table 3.0 shows the number of theft crimes in various neighborhoods in Chicago in October. According to this Table, we can know that Chicago neighborhood 19 has the highest number of thefts.
+
+<br>
+
+## 3.1 Detail locations of the crime the largest number of crime types occurred in 2022.
+```{r,echo = FALSE}
+vs.pal <- colorFactor(c('darkgreen','red', 'blue'), domain=theft_data$District)
+
+map <- leaflet(theft_data) %>% 
+  addProviderTiles('CartoDB.Positron') %>% 
+  addCircles(
+    lat = ~Latitude, lng=~Longitude, 
+    label = ~`District`, color = ~ vs.pal(District),
+    opacity = 1, fillOpacity = 1, radius = 30) %>%
+  addLegend('bottomleft', pal=vs.pal, values=theft_data$District, opacity=1)
+map
+```
+
+Figure 3.1 is a leaflet graph, which clearly shows the distribution of Theft, which has the most crimes, in various streets in Chicago in October 2022.
+
+<br>
+
+# Conclusion and summary
+
+<br>
+
+This analysis provides some understanding of Chicago’s basic crime situation in 2014, 2018, and 2022:
+
+1. From a time analysis, judging from the total number of crimes in Chicago each year, the total number of crimes will be the least in 2022 and the most in 2014. The overall number of crimes appears to have decreased over the years. Looking at the monthly trends over the past three years, the trends over the past three years have been roughly the same. The number of crimes increased between January and July each of the three years. After July, the total number of crimes showed a downward trend.
+
+2. From the analysis of crime types, from the three-year crime type statistics, theft has the largest number. Among them, looking at January 2022 (the month with the highest number of crimes), Chicago's unique 19 are the areas where theft crimes occurred.
+
+
+
+
+
+
+
