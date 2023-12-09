@@ -7,10 +7,4 @@ This study sought to understand Chicago crime patterns and trends through three 
 
 Data come from : https://data.cityofchicago.org/Public-Safety/Crimes-2001-to-Present/ijzp-q8t2/data. 
 
-If you want to get data, you can download:
-
-Data 1: [Download](https://github.com/mosenxiong/pm566-final-project/raw/main/Crimes_-_2014.csv)
-
-Data 2: [Download](https://github.com/mosenxiong/pm566-final-project/raw/main/Crimes_-_2018.csv)
-
-Data 3: [Download](https://github.com/mosenxiong/pm566-final-project/raw/main/Crimes_-_2022.csv)
+If you want to get data, you can download: you can click on the webpage, then select "More Views", and then select 2014,2018, 2020. In this way, you can get three data.
